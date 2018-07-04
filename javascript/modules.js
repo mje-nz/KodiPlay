@@ -337,7 +337,8 @@ var YoutubeModule = {
     canHandleUrl: function(url) {
         var validPatterns = [
             ".*youtube.com/watch.*",
-            ".*youtu.be/.*"
+            ".*youtu.be/.*",
+            ".*youtube.com/playlist.*"
         ];
         return urlMatchesOneOfPatterns(url, validPatterns);
     },
@@ -345,15 +346,37 @@ var YoutubeModule = {
         return 'video';
     },
     getPluginPath: function(url, callback) {
-        if (url.match('v=([^&]+)')) {
-            var videoId = url.match('v=([^&]+)')[1];
-            callback('plugin://plugin.video.youtube/play/?video_id=' + videoId);
+        /* youtu.be links have the format https://youtu.be/VIDEO_ID[?list=PLAYLIST_ID] */
+        /* Normal youtube links have the format https://www.youtube.com/watch?v=VIDEO_ID[&list=VIDEO_ID] */
+        /* Playlist links have the format https://www.youtube.com/playlist?list=PLAYLIST_ID */
+        var pluginPath = 'plugin://plugin.video.youtube/play/?';
+        var videoId, playlistId, match;
+
+        match = url.match('.*youtu.be/[^\?]+');
+        if (match) {
+            videoId = match[1];
         }
 
-        if (url.match('.*youtu.be/(.+)')) {
-            var videoId = url.match('.*youtu.be/(.+)')[1];
-            callback('plugin://plugin.video.youtube/play/?video_id=' + videoId);
+        match = url.match('v=([^&]+)');
+        if (match) {
+            videoId = match[1];
         }
+
+        match = url.match('list=([^&]+)');
+        if (match) {
+        	playlistId = match[1];
+        }
+
+        if (playlistId) {
+        	pluginPath += 'playlist_id=' + playlistId;
+        	if (videoId) {
+        		pluginPath += '&video_id=' + videoId;
+        	}
+        	pluginPath += '&order=default';
+        } else {
+        	pluginPath += 'video_id=' + videoId;
+        }
+        callback(pluginPath);
     },
     createCustomContextMenus: function() {
         //Create context menus for embedded youtube videos
