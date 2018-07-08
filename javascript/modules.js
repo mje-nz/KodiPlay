@@ -372,7 +372,7 @@ var YoutubeModule = {
         	if (videoId) {
         		pluginPath += '&video_id=' + videoId;
         	}
-        	pluginPath += '&order=default';
+            pluginPath += '&order=default&play=1';
         } else {
         	pluginPath += 'video_id=' + videoId;
         }
